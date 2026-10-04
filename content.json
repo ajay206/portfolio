@@ -86,7 +86,7 @@
     {
       "name": "DevOps Automation Project",
       "status": "",
-      "description": "CI/CD pipeline that automates application build, containerisation and deployment with Docker, Ansible and Kubernetes."
+      "description": "CI/CD pipeline using Jenkins, GitHub, Docker, Ansible and Kubernetes that automates application build, containerisation and deployment."
     }
   ],
   "resume": {

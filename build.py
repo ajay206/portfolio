@@ -286,14 +286,19 @@ def audit(content, page):
             if number not in bullets:
                 raise SystemExit(f"Highlight number {number} is not in the experience bullets")
 
+    if "jenkins" in lowered:
+        raise SystemExit("Jenkins appears in the CSG experience bullets")
     clone = json.loads(json.dumps(content))
     for group in clone["skills"]:
-        group["items"] = [item for item in group["items"] if item.lower() != "jenkins"]
+        group["items"] = [item for item in group["items"] if "jenkins" not in item.lower()]
+    for project in clone["projects"]:
+        if project.get("name") == "DevOps Automation Project":
+            project["description"] = re.sub(r"jenkins", "", project.get("description", ""), flags=re.I)
     if "jenkins" in json.dumps(clone).lower():
-        raise SystemExit("Jenkins appears outside skill tags in content.json")
-    without_skills = re.sub(r'<section id="skills".*?</section>', "", page, flags=re.S | re.I)
-    if "jenkins" in without_skills.lower():
-        raise SystemExit("Jenkins appears outside the skills section in the generated page")
+        raise SystemExit("Jenkins appears outside skill tags and the DevOps Automation Project")
+    page_rest = re.sub(r'<section id="(?:skills|projects)".*?</section>', "", page, flags=re.S | re.I)
+    if "jenkins" in page_rest.lower():
+        raise SystemExit("Jenkins appears outside skills and projects in the generated page")
 
     blob = json.dumps(content) + "\n" + page
     if PHONE_RE.search(blob):
