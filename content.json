@@ -19,32 +19,31 @@
   },
   "highlights": {
     "heading": "Highlights",
-    "note": "Display extracts of the experience bullets. Each source must appear in those bullets. Do not add figures that are not already there.",
+    "note": "One card per achievement. Each source string and every figure must appear in the experience text. Do not add numbers that are not there.",
     "items": [
       {
-        "value": "14",
-        "label": "countries",
-        "detail": "SingleView v9-to-v12 upgrade",
-        "source": "14 countries"
+        "title": "SingleView v9 to v12 upgrade",
+        "metrics": ["14 countries", "Millions of accounts"],
+        "line": "Led this major platform upgrade with an 8-person team per upgrade, delivered within a planned 6-hour downtime window.",
+        "source": "14 countries covering millions of accounts, with an 8-person team per upgrade, delivered within a planned 6-hour downtime window."
       },
       {
-        "value": "Millions",
-        "label": "of accounts",
-        "detail": "SingleView v9-to-v12 upgrade",
-        "source": "millions of accounts"
+        "title": "Starlink integration",
+        "metrics": ["9 countries", "3 weeks"],
+        "line": "Delivered the rollout, demoed it to CSRs and OPCO clients, and replicated it across the other OPCOs. Tens of customers onboarded so far.",
+        "source": "9 countries within 3 weeks"
       },
       {
-        "pair": [
-          {"value": "~400", "label": "enterprise customers"},
-          {"value": "~2,500", "label": "services"}
-        ],
-        "detail": "including balances",
-        "source": "~400 enterprise customers and ~2,500 services, including balances"
+        "title": "Billing migration",
+        "metrics": ["~400 customers", "~2,500 services"],
+        "line": "Moved these enterprise customers and services, including balances, from manual to automated billing with no downtime.",
+        "source": "~400 enterprise customers and ~2,500 services, including balances, from manual to automated billing with no downtime."
       },
       {
-        "value": "No downtime",
-        "label": "manual to automated billing",
-        "source": "manual to automated billing with no downtime"
+        "title": "REST API framework",
+        "metrics": ["5 production APIs"],
+        "line": "Built the configuration-driven outbound framework that nearly all current and new REST APIs are built on. New APIs are set up through configuration instead of new functions.",
+        "source": "Developed 5 production APIs for enterprise integrations."
       }
     ]
   },
@@ -54,22 +53,49 @@
       "company": "CSG",
       "start": "Aug 2022",
       "end": "Present",
-      "bullets": [
-        "Led the SingleView v9-to-v12 upgrade across 14 countries covering millions of accounts, with an 8-person team per upgrade, delivered within a planned 6-hour downtime window.",
-        "Delivered the Starlink integration across 9 countries in 3 weeks; demoed it to CSRs and OPCO clients and replicated it across the other OPCOs.",
-        "Migrated ~400 enterprise customers and ~2,500 services, including balances, from manual to automated billing with no downtime.",
-        "Built the configuration-driven REST API framework that nearly all current and new REST APIs are built on, so new APIs are set up through configuration instead of new code."
-      ]
+      "summary": "Day to day: telecom billing on CSG SingleView (CM, CB), REST/SOAP API integrations, Oracle SQL, Perl, and operations support.",
+      "tags": ["CSG SingleView (CM, CB)", "REST APIs", "SOAP APIs", "Oracle SQL", "PostgreSQL", "Perl", "EPM", "Docker", "Kubernetes", "Linux"],
+      "themes": [
+        {
+          "heading": "SingleView v9 to v12 upgrade",
+          "points": ["Led the platform upgrade across 14 countries covering millions of accounts, with an 8-person team per upgrade, delivered within a planned 6-hour downtime window."]
+        },
+        {
+          "heading": "Starlink integration",
+          "points": ["Delivered the Starlink integration deployment across 9 countries within 3 weeks; demoed it to CSRs and OPCO clients and replicated it across the other OPCOs. Recently launched, with tens of customers onboarded so far."]
+        },
+        {
+          "heading": "Billing migration",
+          "points": ["Migrated ~400 enterprise customers and ~2,500 services, including balances, from manual to automated billing with no downtime."]
+        },
+        {
+          "heading": "REST API framework",
+          "points": ["Built a reusable, configuration-driven outbound REST API framework that nearly all current and all new REST APIs are built on. New APIs are set up through configuration instead of writing new functions each time. Developed 5 production APIs for enterprise integrations."]
+        },
+        {
+          "heading": "Operations and customer delivery",
+          "points": [
+            "Developed real-time customer notifications and an automated email reminder system used by enterprise customers across multiple regions.",
+            "Built SQL-based reporting and automation for billing operations, giving the operations team ready-made reports so they no longer write and maintain their own SQL queries.",
+            "Streamlined invoice generation and balance confirmation workflows through process automation.",
+            "Worked directly with enterprise customers to resolve production issues through root cause analysis, and provided technical consultation.",
+            "Implemented 6 customer-driven product enhancements to the platform."
+          ]
+        }
+      ],
+      "award": "Spotlight for Excellence Award, CSG (2024)",
+      "next": "BillPilot, an ongoing portfolio project for AI integration on a mock telecom billing system."
     },
     {
       "role": "SDE Intern",
       "company": "CSG",
       "start": "Mar 2022",
       "end": "Jul 2022",
-      "bullets": []
+      "summary": "Configured telecom rating and billing solutions, and developed and tested UI components and reusable software components.",
+      "tags": ["Rating & billing", "UI components"],
+      "themes": []
     }
   ],
-  "award": "Spotlight for Excellence Award, CSG (2024)",
   "skills": [
     {"group": "Telecom BSS", "items": ["CSG SingleView (CM, CB)", "Rating & billing", "Invoicing", "Billing migrations", "Platform upgrades"]},
     {"group": "APIs & integration", "items": ["REST APIs", "SOAP APIs", "System integration"]},
