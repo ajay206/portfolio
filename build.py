@@ -247,26 +247,22 @@ def write_favicon_svg(dest: Path):
 
 REVEAL_JS = """<script>
 (function () {
+  document.documentElement.classList.add("js");
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   if (!("IntersectionObserver" in window)) return;
   var nodes = document.querySelectorAll(".reveal");
   var vh = window.innerHeight || 800;
-  var pending = [];
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("in");
+      io.unobserve(entry.target);
+    });
+  }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
   nodes.forEach(function (node) {
-    if (node.getBoundingClientRect().top < vh * 0.92) node.classList.add("in");
-    else pending.push(node);
+    if (node.getBoundingClientRect().top < vh * 0.92) node.classList.add("in", "seen");
+    else io.observe(node);
   });
-  if (pending.length) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("in");
-        io.unobserve(entry.target);
-      });
-    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
-    pending.forEach(function (node) { io.observe(node); });
-  }
-  document.documentElement.classList.add("js");
 })();
 </script>
 """
