@@ -84,24 +84,26 @@ def render_job(job: dict) -> str:
     themes = []
     for theme in job.get("themes", []):
         themes.append(
-            '<div class="theme">'
+            '<article class="theme">'
             f'<h4>{e(theme["heading"])}</h4>'
             f'{render_points(theme.get("points", []))}'
-            "</div>"
+            "</article>"
         )
-    themes_html = f'<div class="themes">{"".join(themes)}</div>' if themes else ""
+    themes_html = f'<div class="timeline">{"".join(themes)}</div>' if themes else ""
     legacy = render_points(job.get("bullets", []))
     award = f'<p class="award">{e(job["award"])}</p>' if job.get("award") else ""
     nxt = ""
     if job.get("next"):
         nxt = f'<p class="next"><span class="next-label">Building next</span>{e(job["next"])}</p>'
     return f"""<article class="job">
-        <header class="row">
-          <h3>{e(job["role"])} <span class="muted">· {e(job["company"])}</span></h3>
-          <p class="muted date">{time_tag(job["start"])} – {time_tag(job["end"])}</p>
-        </header>
-        {summary}
-        {tags}
+        <div class="role-card">
+          <header class="row">
+            <h3>{e(job["role"])} <span class="muted">· {e(job["company"])}</span></h3>
+            <p class="date">{time_tag(job["start"])} – {time_tag(job["end"])}</p>
+          </header>
+          {summary}
+          {tags}
+        </div>
         {themes_html}
         {legacy}
         {award}
@@ -198,7 +200,7 @@ def paste_gradient_text(base, xy, lines, font, max_width):
 
 def render_og(content, dest: Path, page_url: str):
     width, height = 1200, 630
-    canvas = Image.new("RGBA", (width, height), (7, 8, 15, 255))
+    canvas = Image.new("RGBA", (width, height), (20, 26, 51, 255))
     glow = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     glow_draw = ImageDraw.Draw(glow)
     glow_draw.ellipse((-120, -160, 560, 460), fill=(124, 108, 255, 110))
@@ -222,7 +224,7 @@ def render_og(content, dest: Path, page_url: str):
         lines = [head + "AI", tail]
     else:
         lines = [headline]
-    draw.text((80, 128), f"{content['name']}  ·  {content['location']}", font=small, fill=(168, 176, 192))
+    draw.text((80, 128), f"{content['name']}  ·  {content['location']}", font=small, fill=(197, 202, 211))
     words = content["valueStatement"].split()
     wrapped, current = [], ""
     for word in words:
@@ -236,10 +238,10 @@ def render_og(content, dest: Path, page_url: str):
         wrapped.append(current)
     y = 210 + 78 * len(lines) + 28
     for line in wrapped[:3]:
-        draw.text((80, y), line, font=body, fill=(168, 176, 192))
+        draw.text((80, y), line, font=body, fill=(229, 231, 235))
         y += 38
     host = page_url.replace("https://", "").rstrip("/")
-    draw.text((80, 560), host, font=small, fill=(168, 176, 192))
+    draw.text((80, 560), host, font=small, fill=(197, 202, 211))
     # Draw after ImageDraw calls. A Draw object keeps a stale buffer and would erase this.
     paste_gradient_text(canvas, (80, 200), lines, display, 980)
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -295,15 +297,41 @@ REVEAL_JS = """<script>
   if (!("IntersectionObserver" in window)) return;
   var nodes = document.querySelectorAll(".reveal");
   var vh = window.innerHeight || 800;
+
+  function settle(node) {
+    node.classList.add("in", "seen");
+  }
+
+  function reveal(node) {
+    /* A section taller than the viewport would fade as one block, including
+       text already on screen. Skip that animation and leave it opaque. */
+    if (node.offsetHeight > vh * 0.9) {
+      settle(node);
+      return;
+    }
+    node.classList.add("in");
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      node.classList.add("seen");
+    }
+    node.addEventListener("animationend", finish);
+    /* If the animation never starts or never ends, force full opacity. */
+    window.setTimeout(finish, 700);
+  }
+
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
       if (!entry.isIntersecting) return;
-      entry.target.classList.add("in");
+      reveal(entry.target);
       io.unobserve(entry.target);
     });
   }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+
   nodes.forEach(function (node) {
-    if (node.getBoundingClientRect().top < vh * 0.92) node.classList.add("in", "seen");
+    var onScreen = node.getBoundingClientRect().top < vh * 0.92;
+    if (onScreen || node.offsetHeight > vh * 0.9) settle(node);
     else io.observe(node);
   });
 })();
@@ -413,7 +441,7 @@ def build():
 <title>{e(title)}</title>
 <meta name="description" content="{e(description)}">
 <meta name="author" content="{e(content["name"])}">
-<meta name="theme-color" content="#07080f">
+<meta name="theme-color" content="#141a33">
 <meta name="color-scheme" content="dark">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="{e(root)}">
@@ -440,6 +468,7 @@ def build():
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="atmosphere" aria-hidden="true"></div>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap bar">
