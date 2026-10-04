@@ -6,6 +6,7 @@
   --text: #ffffff;
   --muted: #e0e7ff;
   --accent: #67e8f9;
+  --card: #1e2547;
   --line: rgba(165, 180, 252, 0.28);
   --sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --display: "Space Grotesk", Inter, system-ui, sans-serif;
@@ -353,9 +354,9 @@ h1 {
   padding: 24px;
   border-radius: 18px;
   border: 1px solid transparent;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.06)) padding-box,
-    var(--edge) border-box;
+  background-image: linear-gradient(var(--card), var(--card)), var(--edge);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
   box-shadow: 0 16px 40px rgba(8, 10, 28, 0.38);
   transition: box-shadow 0.2s ease;
 }
@@ -455,9 +456,9 @@ h3 {
   padding: 22px 24px;
   border-radius: 18px;
   border: 1px solid transparent;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.06)) padding-box,
-    var(--edge) border-box;
+  background-image: linear-gradient(var(--card), var(--card)), var(--edge);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
   box-shadow: 0 16px 40px rgba(8, 10, 28, 0.38);
 }
 
@@ -488,9 +489,9 @@ h3 {
   padding: 18px 20px 16px;
   border-radius: 16px;
   border: 1px solid transparent;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.06)) padding-box,
-    var(--edge) border-box;
+  background-image: linear-gradient(var(--card), var(--card)), var(--edge);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
   box-shadow: 0 14px 34px rgba(8, 10, 28, 0.32);
 }
 
@@ -550,9 +551,9 @@ h3 {
   padding: 14px 16px;
   border-radius: 14px;
   border: 1px solid transparent;
-  background:
-    linear-gradient(rgba(129, 140, 248, 0.2), rgba(34, 211, 238, 0.12)) padding-box,
-    var(--edge) border-box;
+  background-image: linear-gradient(var(--card), var(--card)), var(--edge);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
   font-size: 16px;
   font-weight: 600;
   color: #fff;
@@ -633,9 +634,9 @@ h3 {
   padding: 24px;
   border-radius: 18px;
   border: 1px solid transparent;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.06)) padding-box,
-    var(--edge) border-box;
+  background-image: linear-gradient(var(--card), var(--card)), var(--edge);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
   box-shadow: 0 16px 40px rgba(8, 10, 28, 0.38);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
