@@ -54,9 +54,8 @@ def render_stat(item: dict) -> str:
     metrics = item.get("metrics") or []
     metric_html = ""
     if metrics:
-        shown = " · ".join(metrics)
-        long = " is-long" if len(shown) > 28 else ""
-        metric_html = f'<p class="stat-metric grad{long}">{e(shown)}</p>'
+        lines = "".join(f'<span class="grad">{e(metric)}</span>' for metric in metrics)
+        metric_html = f'<p class="stat-metric">{lines}</p>'
     line = f'<p class="stat-line">{e(item["line"])}</p>' if item.get("line") else ""
     return (
         '<article class="stat">'
