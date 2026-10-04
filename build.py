@@ -84,24 +84,26 @@ def render_job(job: dict) -> str:
     themes = []
     for theme in job.get("themes", []):
         themes.append(
-            '<div class="theme">'
+            '<article class="theme">'
             f'<h4>{e(theme["heading"])}</h4>'
             f'{render_points(theme.get("points", []))}'
-            "</div>"
+            "</article>"
         )
-    themes_html = f'<div class="themes">{"".join(themes)}</div>' if themes else ""
+    themes_html = f'<div class="timeline">{"".join(themes)}</div>' if themes else ""
     legacy = render_points(job.get("bullets", []))
     award = f'<p class="award">{e(job["award"])}</p>' if job.get("award") else ""
     nxt = ""
     if job.get("next"):
         nxt = f'<p class="next"><span class="next-label">Building next</span>{e(job["next"])}</p>'
     return f"""<article class="job">
-        <header class="row">
-          <h3>{e(job["role"])} <span class="muted">· {e(job["company"])}</span></h3>
-          <p class="muted date">{time_tag(job["start"])} – {time_tag(job["end"])}</p>
-        </header>
-        {summary}
-        {tags}
+        <div class="role-card">
+          <header class="row">
+            <h3>{e(job["role"])} <span class="muted">· {e(job["company"])}</span></h3>
+            <p class="date">{time_tag(job["start"])} – {time_tag(job["end"])}</p>
+          </header>
+          {summary}
+          {tags}
+        </div>
         {themes_html}
         {legacy}
         {award}
@@ -198,7 +200,7 @@ def paste_gradient_text(base, xy, lines, font, max_width):
 
 def render_og(content, dest: Path, page_url: str):
     width, height = 1200, 630
-    canvas = Image.new("RGBA", (width, height), (11, 16, 32, 255))
+    canvas = Image.new("RGBA", (width, height), (20, 26, 51, 255))
     glow = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     glow_draw = ImageDraw.Draw(glow)
     glow_draw.ellipse((-120, -160, 560, 460), fill=(124, 108, 255, 110))
@@ -439,7 +441,7 @@ def build():
 <title>{e(title)}</title>
 <meta name="description" content="{e(description)}">
 <meta name="author" content="{e(content["name"])}">
-<meta name="theme-color" content="#0b1020">
+<meta name="theme-color" content="#141a33">
 <meta name="color-scheme" content="dark">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="{e(root)}">
@@ -466,6 +468,7 @@ def build():
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="atmosphere" aria-hidden="true"></div>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap bar">
