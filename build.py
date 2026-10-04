@@ -50,34 +50,77 @@ def time_tag(label: str) -> str:
     return f"<time>{shown}</time>"
 
 
-def value_class(value: str) -> str:
-    classes = "stat-value grad"
-    if len(value) > 8:
-        classes += " is-long"
-    return classes
-
-
 def render_stat(item: dict) -> str:
-    detail = item.get("detail") or ""
-    detail_html = f'<p class="stat-detail">{e(detail)}</p>' if detail else ""
-    wide = " stat-wide" if "pair" in item else ""
-    if "pair" in item:
-        cells = []
-        for part in item["pair"]:
-            cells.append(
-                "<li>"
-                f'<p class="{value_class(part["value"])}">{e(part["value"])}</p>'
-                f'<p class="stat-label">{e(part["label"])}</p>'
-                "</li>"
-            )
-        body = f'<ul class="stat-pair">{"".join(cells)}</ul>{detail_html}'
-    else:
-        body = (
-            f'<p class="{value_class(item["value"])}">{e(item["value"])}</p>'
-            f'<p class="stat-label">{e(item["label"])}</p>'
-            f"{detail_html}"
+    metrics = item.get("metrics") or []
+    metric_html = ""
+    if metrics:
+        shown = " · ".join(metrics)
+        long = " is-long" if len(shown) > 28 else ""
+        metric_html = f'<p class="stat-metric grad{long}">{e(shown)}</p>'
+    line = f'<p class="stat-line">{e(item["line"])}</p>' if item.get("line") else ""
+    return (
+        '<article class="stat">'
+        f'<h3 class="stat-title">{e(item["title"])}</h3>'
+        f"{metric_html}{line}"
+        "</article>"
+    )
+
+
+def render_points(points: list) -> str:
+    if not points:
+        return ""
+    if len(points) == 1:
+        return f"<p>{nowrap(e(points[0]))}</p>"
+    items = "".join(f"<li>{nowrap(e(point))}</li>" for point in points)
+    return f"<ul>{items}</ul>"
+
+
+def render_job(job: dict) -> str:
+    summary = f'<p class="role-summary">{e(job["summary"])}</p>' if job.get("summary") else ""
+    tags = ""
+    if job.get("tags"):
+        chips = "".join(f"<li>{e(tag)}</li>" for tag in job["tags"])
+        tags = f'<ul class="tags role-tags">{chips}</ul>'
+    themes = []
+    for theme in job.get("themes", []):
+        themes.append(
+            '<div class="theme">'
+            f'<h4>{e(theme["heading"])}</h4>'
+            f'{render_points(theme.get("points", []))}'
+            "</div>"
         )
-    return f'<article class="stat{wide}">{body}</article>'
+    themes_html = f'<div class="themes">{"".join(themes)}</div>' if themes else ""
+    legacy = render_points(job.get("bullets", []))
+    award = f'<p class="award">{e(job["award"])}</p>' if job.get("award") else ""
+    nxt = ""
+    if job.get("next"):
+        nxt = f'<p class="next"><span class="next-label">Building next</span>{e(job["next"])}</p>'
+    return f"""<article class="job">
+        <header class="row">
+          <h3>{e(job["role"])} <span class="muted">· {e(job["company"])}</span></h3>
+          <p class="muted date">{time_tag(job["start"])} – {time_tag(job["end"])}</p>
+        </header>
+        {summary}
+        {tags}
+        {themes_html}
+        {legacy}
+        {award}
+        {nxt}
+      </article>"""
+
+
+def experience_corpus(content: dict) -> str:
+    parts = []
+    for job in content["experience"]:
+        parts.append(job.get("summary", ""))
+        parts.extend(job.get("tags", []))
+        parts.extend(job.get("bullets", []))
+        for theme in job.get("themes", []):
+            parts.append(theme.get("heading", ""))
+            parts.extend(theme.get("points", []))
+        parts.append(job.get("award", ""))
+        parts.append(job.get("next", ""))
+    return "\n".join(parts)
 
 
 def link_label(url: str) -> str:
@@ -276,24 +319,29 @@ def current_role(content):
 
 
 def audit(content, page):
-    bullets = "\n".join(b for job in content["experience"] for b in job["bullets"])
+    bullets = experience_corpus(content)
     lowered = bullets.lower()
     for item in content["highlights"]["items"]:
         source = item["source"]
         if source.lower() not in lowered:
-            raise SystemExit(f"Highlight source is not in the experience bullets: {source}")
+            raise SystemExit(f"Highlight source is not in the experience text: {source}")
         for number in re.findall(r"\d[\d,]*", json.dumps(item)):
             if number not in bullets:
-                raise SystemExit(f"Highlight number {number} is not in the experience bullets")
+                raise SystemExit(f"Highlight number {number} is not in the experience text")
 
+    if "jenkins" in lowered:
+        raise SystemExit("Jenkins appears in the CSG experience bullets")
     clone = json.loads(json.dumps(content))
     for group in clone["skills"]:
-        group["items"] = [item for item in group["items"] if item.lower() != "jenkins"]
+        group["items"] = [item for item in group["items"] if "jenkins" not in item.lower()]
+    for project in clone["projects"]:
+        if project.get("name") == "DevOps Automation Project":
+            project["description"] = re.sub(r"jenkins", "", project.get("description", ""), flags=re.I)
     if "jenkins" in json.dumps(clone).lower():
-        raise SystemExit("Jenkins appears outside skill tags in content.json")
-    without_skills = re.sub(r'<section id="skills".*?</section>', "", page, flags=re.S | re.I)
-    if "jenkins" in without_skills.lower():
-        raise SystemExit("Jenkins appears outside the skills section in the generated page")
+        raise SystemExit("Jenkins appears outside skill tags and the DevOps Automation Project")
+    page_rest = re.sub(r'<section id="(?:skills|projects)".*?</section>', "", page, flags=re.S | re.I)
+    if "jenkins" in page_rest.lower():
+        raise SystemExit("Jenkins appears outside skills and projects in the generated page")
 
     blob = json.dumps(content) + "\n" + page
     if PHONE_RE.search(blob):
@@ -333,19 +381,7 @@ def build():
         raise SystemExit("JSON-LD must not include a phone number")
     ld_json = json.dumps(person, ensure_ascii=False).replace("<", "\\u003c")
 
-    jobs = []
-    for job in content["experience"]:
-        items = "".join(f"<li>{nowrap(e(bullet))}</li>" for bullet in job["bullets"])
-        bullet_html = f"<ul>{items}</ul>" if items else ""
-        jobs.append(
-            f"""<article class="job">
-        <header class="row">
-          <h3>{e(job["role"])} <span class="muted">· {e(job["company"])}</span></h3>
-          <p class="muted date">{time_tag(job["start"])} – {time_tag(job["end"])}</p>
-        </header>
-        {bullet_html}
-      </article>"""
-        )
+    jobs = [render_job(job) for job in content["experience"]]
 
     skills = []
     for group in content["skills"]:
@@ -450,7 +486,6 @@ def build():
     <h2 id="h-exp">Experience</h2>
     <div>
       {"".join(jobs)}
-      <p class="muted award">{e(content["award"])}</p>
     </div>
   </section>
 
