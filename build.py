@@ -58,10 +58,11 @@ def render_stat(item: dict) -> str:
         metric_html = f'<p class="stat-metric">{lines}</p>'
     line = f'<p class="stat-line">{e(item["line"])}</p>' if item.get("line") else ""
     return (
-        '<article class="stat">'
+        '<article class="stat spot">'
+        '<div class="spot-in">'
         f'<h3 class="stat-title">{e(item["title"])}</h3>'
         f"{metric_html}{line}"
-        "</article>"
+        "</div></article>"
     )
 
 
@@ -83,10 +84,11 @@ def render_job(job: dict) -> str:
     themes = []
     for theme in job.get("themes", []):
         themes.append(
-            '<article class="theme">'
+            '<article class="theme spot">'
+            '<div class="spot-in">'
             f'<h4>{e(theme["heading"])}</h4>'
             f'{render_points(theme.get("points", []))}'
-            "</article>"
+            "</div></article>"
         )
     themes_html = f'<div class="timeline">{"".join(themes)}</div>' if themes else ""
     legacy = render_points(job.get("bullets", []))
@@ -95,13 +97,15 @@ def render_job(job: dict) -> str:
     if job.get("next"):
         nxt = f'<p class="next"><span class="next-label">Building next</span>{e(job["next"])}</p>'
     return f"""<article class="job">
-        <div class="role-card">
+        <div class="role-card spot">
+          <div class="spot-in">
           <header class="row">
             <h3>{e(job["role"])} <span class="muted">· {e(job["company"])}</span></h3>
             <p class="date">{time_tag(job["start"])} – {time_tag(job["end"])}</p>
           </header>
           {summary}
           {tags}
+          </div>
         </div>
         {themes_html}
         {legacy}
@@ -199,11 +203,11 @@ def paste_gradient_text(base, xy, lines, font, max_width):
 
 def render_og(content, dest: Path, page_url: str):
     width, height = 1200, 630
-    canvas = Image.new("RGBA", (width, height), (20, 26, 51, 255))
+    canvas = Image.new("RGBA", (width, height), (9, 9, 11, 255))
     glow = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     glow_draw = ImageDraw.Draw(glow)
-    glow_draw.ellipse((-120, -160, 560, 460), fill=(124, 108, 255, 110))
-    glow_draw.ellipse((680, -180, 1320, 420), fill=(62, 224, 197, 80))
+    glow_draw.ellipse((-80, -140, 480, 380), fill=(88, 78, 180, 70))
+    glow_draw.ellipse((720, -120, 1280, 360), fill=(120, 60, 140, 46))
     canvas.alpha_composite(glow.filter(ImageFilter.GaussianBlur(70)))
     grid = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     grid_draw = ImageDraw.Draw(grid)
@@ -334,6 +338,20 @@ REVEAL_JS = """<script>
     else io.observe(node);
   });
 })();
+(function () {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+  document.addEventListener("pointermove", function (e) {
+    var cards = document.querySelectorAll(".spot");
+    for (var i = 0; i < cards.length; i++) {
+      var rect = cards[i].getBoundingClientRect();
+      if (e.clientX < rect.left - 48 || e.clientX > rect.right + 48) continue;
+      if (e.clientY < rect.top - 48 || e.clientY > rect.bottom + 48) continue;
+      cards[i].style.setProperty("--x", (e.clientX - rect.left) + "px");
+      cards[i].style.setProperty("--y", (e.clientY - rect.top) + "px");
+    }
+  }, { passive: true });
+})();
 </script>
 """
 
@@ -421,10 +439,18 @@ def build():
     for project in content["projects"]:
         badge = f' <span class="badge">{e(project["status"])}</span>' if project.get("status") else ""
         projects.append(
-            f'<article class="project"><h3>{e(project["name"])}{badge}</h3><p>{e(project["description"])}</p></article>'
+            '<article class="project spot"><div class="spot-in">'
+            f'<h3>{e(project["name"])}{badge}</h3><p>{e(project["description"])}</p>'
+            "</div></article>"
         )
 
     highlights = "".join(render_stat(item) for item in content["highlights"]["items"])
+    name_parts = content["name"].split()
+    if len(name_parts) >= 2:
+        name_html = e(" ".join(name_parts[:-1])) + "<br>" + e(name_parts[-1])
+    else:
+        name_html = e(content["name"])
+    headline_html = e(content["headline"]).replace(" + ", ' <span class="plus">+</span> ')
     contact = content["contact"]
     resume = content["resume"]
     og_path = content["site"]["ogImage"]
@@ -440,7 +466,7 @@ def build():
 <title>{e(title)}</title>
 <meta name="description" content="{e(description)}">
 <meta name="author" content="{e(content["name"])}">
-<meta name="theme-color" content="#141a33">
+<meta name="theme-color" content="#09090b">
 <meta name="color-scheme" content="dark">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="{e(root)}">
@@ -467,13 +493,14 @@ def build():
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="atmosphere" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap bar">
     <a class="brand" href="#top">{e(content["name"])}</a>
     <nav aria-label="Primary">
       <ul>
+        <li><a href="#highlights">Highlights</a></li>
         <li><a href="#experience">Experience</a></li>
         <li><a href="#skills">Skills</a></li>
         <li><a href="#projects">Projects</a></li>
@@ -484,50 +511,63 @@ def build():
 </header>
 <main id="main">
   <section id="top" class="hero" aria-labelledby="page-title">
-    <div class="hero-bg" aria-hidden="true">
-      <div class="orb orb-a"></div>
-      <div class="orb orb-b"></div>
-      <div class="gridlines"></div>
-    </div>
+    <div class="wisp" aria-hidden="true"></div>
     <div class="wrap">
-      <p class="eyebrow">{e(content["name"])} <span class="muted">· {e(content["location"])}</span></p>
-      <h1 id="page-title" class="grad">{e(content["headline"])}</h1>
-      <p class="lede">{e(content["valueStatement"])}</p>
-      <p class="actions">
-        <a class="btn primary" href="{e(resume["path"])}" download="{e(Path(resume["path"]).name)}">{e(resume["heroLabel"])}</a>
-        <a class="btn" href="#contact">Contact</a>
-      </p>
+      <p class="kicker"><span class="kicker-mark">{e(role["company"])}</span>{e(role["role"])} · {e(content["location"])}</p>
+      <h1 id="page-title">{name_html}</h1>
+      <div class="hero-row">
+        <div class="hero-copy">
+          <p class="headline">{headline_html}</p>
+          <p class="lede">{e(content["valueStatement"])}</p>
+        </div>
+        <p class="actions">
+          <a class="btn primary" href="{e(resume["path"])}" download="{e(Path(resume["path"]).name)}">{e(resume["heroLabel"])}</a>
+          <a class="btn" href="#contact">Contact</a>
+        </p>
+      </div>
     </div>
   </section>
 
-  <section id="highlights" class="wrap highlights reveal" aria-labelledby="h-highlights">
-    <h2 id="h-highlights">{e(content["highlights"]["heading"])}</h2>
+  <section id="highlights" class="wrap section reveal" aria-labelledby="h-highlights">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">要点</span>
+      <h2 id="h-highlights">{e(content["highlights"]["heading"])}</h2>
+    </div>
     <div class="bento">{highlights}</div>
   </section>
 
-  <section id="about" class="wrap block reveal" aria-labelledby="h-about">
+  <section id="about" class="wrap section reveal" aria-labelledby="h-about">
     <h2 id="h-about">About</h2>
     <p class="body">{e(content["summary"])}</p>
   </section>
 
-  <section id="experience" class="wrap block reveal" aria-labelledby="h-exp">
-    <h2 id="h-exp">Experience</h2>
+  <section id="experience" class="wrap section reveal" aria-labelledby="h-exp">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">経歴</span>
+      <h2 id="h-exp">Experience</h2>
+    </div>
     <div>
       {"".join(jobs)}
     </div>
   </section>
 
-  <section id="skills" class="wrap block reveal" aria-labelledby="h-skills">
-    <h2 id="h-skills">Skills</h2>
-    <div>{"".join(skills)}</div>
+  <section id="skills" class="wrap section reveal" aria-labelledby="h-skills">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">技術</span>
+      <h2 id="h-skills">Skills</h2>
+    </div>
+    <div class="panel">{"".join(skills)}</div>
   </section>
 
-  <section id="projects" class="wrap block reveal" aria-labelledby="h-proj">
-    <h2 id="h-proj">Projects</h2>
-    <div>{"".join(projects)}</div>
+  <section id="projects" class="wrap section reveal" aria-labelledby="h-proj">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">作品</span>
+      <h2 id="h-proj">Projects</h2>
+    </div>
+    <div class="stack">{"".join(projects)}</div>
   </section>
 
-  <section id="resume" class="wrap block reveal" aria-labelledby="h-resume">
+  <section id="resume" class="wrap section reveal" aria-labelledby="h-resume">
     <h2 id="h-resume">Resume</h2>
     <div>
       <p class="body">{e(resume["blurb"])}</p>
@@ -535,8 +575,11 @@ def build():
     </div>
   </section>
 
-  <section id="contact" class="wrap block reveal" aria-labelledby="h-contact">
-    <h2 id="h-contact">Contact</h2>
+  <section id="contact" class="wrap section reveal" aria-labelledby="h-contact">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">連絡</span>
+      <h2 id="h-contact">Contact</h2>
+    </div>
     <ul class="contact">
       <li><span class="muted">Email</span><a href="mailto:{e(contact["email"])}">{e(contact["email"])}</a></li>
       <li><span class="muted">LinkedIn</span><a href="{e(contact["linkedin"])}" rel="me noopener">{e(link_label(contact["linkedin"]))}</a></li>
