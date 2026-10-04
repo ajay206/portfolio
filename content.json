@@ -1,0 +1,98 @@
+{
+  "site": {
+    "title": "Ajay Kumar Kondeti | Telecom BSS + AI Integration Engineer",
+    "description": "Ajay Kumar Kondeti: Software Engineer at CSG with 4+ years in telecom BSS billing on CSG SingleView (REST/SOAP APIs, Oracle SQL, Perl). Moving into AI integration for telecom.",
+    "url": "https://ajay206.github.io/portfolio",
+    "ogImage": "og.png",
+    "lang": "en",
+    "year": 2026
+  },
+  "name": "Ajay Kumar Kondeti",
+  "headline": "Telecom BSS + AI Integration Engineer",
+  "valueStatement": "4+ years building and integrating telecom billing systems at CSG, now bringing that domain depth to AI integration.",
+  "location": "Hyderabad, India",
+  "summary": "I'm a Software Engineer at CSG with 4+ years (including my internship) building, integrating and supporting telecom billing (BSS) systems on CSG SingleView for enterprise customers across multiple countries. I'm now applying that telecom depth to AI integration.",
+  "contact": {
+    "email": "ajay206.k@gmail.com",
+    "linkedin": "https://www.linkedin.com/in/ajay-kumar-kondeti",
+    "github": "https://github.com/ajay206"
+  },
+  "highlights": {
+    "heading": "Highlights",
+    "note": "Display extracts of the experience bullets. Each source must appear in those bullets. Do not add figures that are not already there.",
+    "items": [
+      {
+        "value": "14",
+        "label": "countries",
+        "detail": "SingleView v9-to-v12 upgrade",
+        "source": "14 countries"
+      },
+      {
+        "value": "Millions",
+        "label": "of accounts",
+        "detail": "SingleView v9-to-v12 upgrade",
+        "source": "millions of accounts"
+      },
+      {
+        "pair": [
+          {"value": "~400", "label": "enterprise customers"},
+          {"value": "~2,500", "label": "services"}
+        ],
+        "detail": "including balances",
+        "source": "~400 enterprise customers and ~2,500 services, including balances"
+      },
+      {
+        "value": "No downtime",
+        "label": "manual to automated billing",
+        "source": "manual to automated billing with no downtime"
+      }
+    ]
+  },
+  "experience": [
+    {
+      "role": "Software Engineer",
+      "company": "CSG",
+      "start": "Aug 2022",
+      "end": "Present",
+      "bullets": [
+        "Led the SingleView v9-to-v12 upgrade across 14 countries covering millions of accounts, with an 8-person team per upgrade, delivered within a planned 6-hour downtime window.",
+        "Delivered the Starlink integration across 9 countries in 3 weeks; demoed it to CSRs and OPCO clients and replicated it across the other OPCOs.",
+        "Migrated ~400 enterprise customers and ~2,500 services, including balances, from manual to automated billing with no downtime.",
+        "Built the configuration-driven REST API framework that nearly all current and new REST APIs are built on, so new APIs are set up through configuration instead of new code."
+      ]
+    },
+    {
+      "role": "SDE Intern",
+      "company": "CSG",
+      "start": "Mar 2022",
+      "end": "Jul 2022",
+      "bullets": []
+    }
+  ],
+  "award": "Spotlight for Excellence Award, CSG (2024)",
+  "skills": [
+    {"group": "Telecom BSS", "items": ["CSG SingleView (CM, CB)", "Rating & billing", "Invoicing", "Billing migrations", "Platform upgrades"]},
+    {"group": "APIs & integration", "items": ["REST APIs", "SOAP APIs", "System integration"]},
+    {"group": "Languages & data", "items": ["EPM", "Perl", "SQL", "Oracle SQL", "PostgreSQL"]},
+    {"group": "DevOps & platforms", "items": ["Docker", "Kubernetes", "Linux", "Git", "Jenkins", "Ansible", "Azure DevOps"]},
+    {"group": "Currently learning", "items": ["LLM tool-calling agents", "RAG", "TM Forum Open APIs"]}
+  ],
+  "projects": [
+    {
+      "name": "BillPilot",
+      "status": "Coming soon",
+      "description": "An AI integration for a mock telecom billing system."
+    },
+    {
+      "name": "DevOps Automation Project",
+      "status": "",
+      "description": "CI/CD pipeline that automates application build, containerisation and deployment with Docker, Ansible and Kubernetes."
+    }
+  ],
+  "resume": {
+    "path": "assets/Ajay_Kumar_Kondeti_Resume.pdf",
+    "heroLabel": "Download resume",
+    "label": "Download resume (PDF)",
+    "blurb": "The full resume, as a PDF."
+  }
+}
