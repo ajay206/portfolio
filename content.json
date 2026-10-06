@@ -47,6 +47,83 @@
       }
     ]
   },
+  "billpilot": {
+    "navLabel": "BillPilot",
+    "seal": "試作",
+    "heading": "BillPilot",
+    "pitch": "An AI copilot for bill disputes and billing operations, built on a mock TM Forum-shaped telecom billing system — every customer, bill, and fault is synthetic.",
+    "repoUrl": "https://github.com/ajay206/billpilot",
+    "repoLabel": "GitHub repo",
+    "liveUrl": "",
+    "liveLabel": "Live demo",
+    "deckUrl": "assets/BillPilot_Architecture.pdf",
+    "deckLabel": "Architecture deck (PDF)",
+    "deckNote": "This is the original design spec. Phases 1\u20135 were built largely as described; the final phase \u2014 testing \u2014 was reduced to basic pytest smoke tests, not a full end-to-end suite.",
+    "video": {
+      "src": "assets/billpilot/billpilot-demo.mp4",
+      "poster": "assets/billpilot/poster.jpg",
+      "width": 1280,
+      "height": 720
+    },
+    "explainer": [
+      {
+        "title": "The problem",
+        "body": "Telecom billing throws up disputes, treatment and entitlement mix-ups, and failures that often surface only after a customer complains. BillPilot is a role-based AI copilot over a mock billing system: a customer assistant that explains bills and policy with citations, a CSR console that investigates and proposes a fix, and an ops control tower that watches for failures and runs the reports \u2014 all backed by a human-approval queue for anything that touches money or service."
+      },
+      {
+        "title": "How it works",
+        "body": "A FastAPI service exposes TMF-shaped routes (customer bill, usage, payment, product inventory, trouble ticket, and a TMF654-style balance) over a PostgreSQL ledger \u2014 the database is the system of record. The copilot is a tool-calling agent whose only way into billing data is that same HTTP API, called with the signed-in user's own session or API key, so it never queries the tables directly. Policy answers come from a small RAG index: docs/knowledge is embedded with pgvector and searched for citations. Guardrails keep the agent to read and advise \u2014 any credit, bar/unbar, or plan change is only proposed, and sits in an approval queue for a different role to apply. Every chat turn and every write lands in an audit log. The customer portal, CSR console, and ops control tower are one React + Vite + TypeScript app behind sign-in, with optional Langfuse tracing per turn, deployed as one Docker container plus a hosted Postgres \u2014 Render's free web service and Neon's free Postgres."
+      }
+    ],
+    "dataNote": "The ledger is a synthetic billing dataset generated with Faker \u2014 500 customers across 6 months of history in a 23-table PostgreSQL schema \u2014 with common telecom issues (duplicate charges, missed discounts, failed payments, barring mistakes, and more) seeded in so the copilot and the rule-based checks have something real to find. No real customer, invoice, or vendor data is used anywhere.",
+    "testingNote": "Testing: ruff and pytest in CI for the backend, including a pytest smoke test for the eval harness (guardrail cases get refused, no case calls an approve tool, a report file is produced), plus a Vitest suite for the UI. That's smoke-level coverage, not a full end-to-end suite.",
+    "personas": [
+      {
+        "role": "Customer",
+        "tagline": "Chat assistant",
+        "body": "Asks things like \u201cWhy is my bill higher this month?\u201d and gets a line-by-line explanation with a policy citation it can open. Can also raise a dispute, which the CSR and ops queue picks up from there."
+      },
+      {
+        "role": "CSR",
+        "tagline": "Account 360\u00b0 console",
+        "body": "Searches an assigned account, works through Bills, Lines, Usage, Payments, Treatment, Tickets, and Disputes tabs, and asks the copilot for an explanation with its tool calls visible. Can propose a credit \u2014 it only ever proposes, never applies. A troubleshooting panel takes a pasted error and returns numbered steps cited from the runbooks."
+      },
+      {
+        "role": "Ops",
+        "tagline": "Control tower",
+        "body": "Approves or rejects proposed credits (never the account's own proposer), watches the failure dashboard for stuck bill runs and failed events, generates billing and collections reports, runs rule-based fraud and revenue checks, and handles onboarding and bulk migration \u2014 including a dry run, a human sign-off, and rollback by batch."
+      }
+    ],
+    "phases": [
+      {
+        "title": "Phase 1 \u00b7 Core ledger & APIs",
+        "body": "PostgreSQL ledger, a Faker-based synthetic generator, FastAPI routes shaped like TM Forum Open APIs, an approval queue and audit log, Docker Compose, and CI."
+      },
+      {
+        "title": "Phase 2 \u00b7 Copilot",
+        "body": "A tool-calling agent, a small RAG policy index with citations, guardrails, propose-not-apply for anything that moves money, and an eval harness."
+      },
+      {
+        "title": "Phase 3 \u00b7 Product surface",
+        "body": "The customer portal, CSR console, and ops control tower as one React + Vite + TypeScript app. Sign-in replaced the old persona switcher, with role and scope read from the database; a free-tier deploy; optional Langfuse tracing."
+      },
+      {
+        "title": "Phase 4 \u00b7 Operations layer",
+        "body": "A billing-event pipeline (a Postgres outbox, or Redpanda locally), a failure dashboard, SQL reports, rule-based fraud and revenue checks, and a CSR troubleshooting assistant."
+      },
+      {
+        "title": "Phase 5 \u00b7 Onboarding & migration",
+        "body": "One API call opens a new subscriber. A bulk legacy-file migration runs a dry run, needs a human sign-off, commits idempotently, and can roll back per batch."
+      }
+    ],
+    "tech": ["FastAPI", "PostgreSQL", "pgvector", "SQLAlchemy", "Alembic", "React", "Vite", "TypeScript", "Docker Compose", "GitHub Actions", "Redpanda", "Langfuse", "Render", "Neon"],
+    "screenshots": [
+      {"src": "assets/billpilot/customer.webp", "alt": "BillPilot customer portal: an account overview with the bill assistant panel open and a cited answer."},
+      {"src": "assets/billpilot/csr.webp", "alt": "BillPilot CSR console: an Account 360 view with the copilot's tool calls shown under its answer."},
+      {"src": "assets/billpilot/ops.webp", "alt": "BillPilot ops control tower: the approval queue for pending credits."},
+      {"src": "assets/billpilot/findings.webp", "alt": "BillPilot findings panel: rule-based revenue-assurance checks over the synthetic ledger."}
+    ]
+  },
   "experience": [
     {
       "role": "Software Engineer",
@@ -84,7 +161,7 @@
         }
       ],
       "award": "Spotlight for Excellence Award, CSG (2024)",
-      "next": "BillPilot, an ongoing portfolio project for AI integration on a mock telecom billing system."
+      "next": "BillPilot, a role-based AI copilot I built on a mock telecom billing system \u2014 see the dedicated project section below."
     },
     {
       "role": "SDE Intern",
@@ -104,11 +181,6 @@
     {"group": "Currently learning", "items": ["LLM tool-calling agents", "RAG", "TM Forum Open APIs"]}
   ],
   "projects": [
-    {
-      "name": "BillPilot",
-      "status": "Coming soon",
-      "description": "An AI integration for a mock telecom billing system."
-    },
     {
       "name": "DevOps Automation Project",
       "status": "",
