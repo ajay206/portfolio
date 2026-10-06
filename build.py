@@ -66,6 +66,83 @@ def render_stat(item: dict) -> str:
     )
 
 
+def render_billpilot(bp: dict) -> str:
+    video = bp["video"]
+    repo_btn = f'<a class="btn primary" href="{e(bp["repoUrl"])}" rel="noopener">{e(bp["repoLabel"])}</a>'
+    live_btn = ""
+    if bp.get("liveUrl"):
+        live_btn = f'<a class="btn" href="{e(bp["liveUrl"])}" rel="noopener">{e(bp.get("liveLabel", "Live demo"))}</a>'
+    deck_btn = ""
+    deck_note = ""
+    if bp.get("deckUrl"):
+        deck_btn = f'<a class="btn" href="{e(bp["deckUrl"])}" target="_blank" rel="noopener">{e(bp["deckLabel"])}</a>'
+        if bp.get("deckNote"):
+            deck_note = f'<p class="bp-deck-note muted">{e(bp["deckNote"])}</p>'
+
+    explainer = "".join(
+        '<article class="bp-card spot"><div class="spot-in">'
+        f'<h3>{e(card["title"])}</h3><p class="body">{e(card["body"])}</p>'
+        "</div></article>"
+        for card in bp["explainer"]
+    )
+
+    notes = "".join(
+        f'<p class="body bp-note">{e(note)}</p>'
+        for note in (bp.get("dataNote"), bp.get("testingNote"))
+        if note
+    )
+
+    personas = "".join(
+        '<article class="bp-persona spot"><div class="spot-in">'
+        f'<p class="bp-persona-tag muted">{e(persona["tagline"])}</p>'
+        f'<h4>{e(persona["role"])}</h4>'
+        f'<p class="body">{e(persona["body"])}</p>'
+        "</div></article>"
+        for persona in bp["personas"]
+    )
+
+    phases = "".join(
+        '<li class="bp-phase spot"><div class="spot-in">'
+        f'<h4>{e(phase["title"])}</h4><p class="body">{e(phase["body"])}</p>'
+        "</div></li>"
+        for phase in bp["phases"]
+    )
+
+    tech = "".join(f"<li>{e(item)}</li>" for item in bp["tech"])
+
+    shots = "".join(
+        f'<a class="bp-shot" href="{e(shot["src"])}" target="_blank" rel="noopener">'
+        f'<img src="{e(shot["src"])}" alt="{e(shot["alt"])}" loading="lazy" decoding="async" width="900" height="648">'
+        "</a>"
+        for shot in bp["screenshots"]
+    )
+
+    return f"""<section id="billpilot" class="wrap section reveal" aria-labelledby="h-billpilot">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">{e(bp["seal"])}</span>
+      <h2 id="h-billpilot">{e(bp["heading"])}</h2>
+    </div>
+    <p class="lede bp-pitch">{e(bp["pitch"])}</p>
+    <p class="actions bp-actions">{repo_btn}{live_btn}{deck_btn}</p>
+    {deck_note}
+    <div class="bp-video">
+      <video controls preload="none" poster="{e(video["poster"])}" width="{video["width"]}" height="{video["height"]}" playsinline>
+        <source src="{e(video["src"])}" type="video/mp4">
+      </video>
+    </div>
+    <div class="bp-grid">{explainer}</div>
+    {notes}
+    <h3 class="bp-sub">Who it's for</h3>
+    <div class="bp-personas">{personas}</div>
+    <h3 class="bp-sub">How it was built</h3>
+    <ol class="bp-phases">{phases}</ol>
+    <h3 class="bp-sub">Stack</h3>
+    <ul class="tags bp-tech">{tech}</ul>
+    <h3 class="bp-sub">Screens</h3>
+    <div class="bp-gallery">{shots}</div>
+  </section>"""
+
+
 def render_points(points: list) -> str:
     if not points:
         return ""
@@ -388,6 +465,12 @@ def audit(content, page):
     if "jenkins" in page_rest.lower():
         raise SystemExit("Jenkins appears outside skills and projects in the generated page")
 
+    bp_match = re.search(r'<section id="billpilot".*?</section>', page, flags=re.S | re.I)
+    bp_html = bp_match.group(0).lower() if bp_match else ""
+    bp_blob = (json.dumps(content.get("billpilot", {})) + "\n" + bp_html).lower()
+    if "csg" in bp_blob or "singleview" in bp_blob:
+        raise SystemExit("CSG or SingleView must not be mentioned in the BillPilot section")
+
     blob = json.dumps(content) + "\n" + page
     if PHONE_RE.search(blob):
         raise SystemExit("A phone-like number is present in the site content or HTML")
@@ -402,6 +485,15 @@ def build():
     pdf_path = (ROOT / content["resume"]["path"]).resolve()
     if not pdf_path.is_relative_to(ROOT.resolve()) or not pdf_path.is_file():
         raise SystemExit(f"Resume PDF not found at {content['resume']['path']}")
+
+    bp = content["billpilot"]
+    bp_assets = [bp["video"]["src"], bp["video"]["poster"]] + [shot["src"] for shot in bp["screenshots"]]
+    if bp.get("deckUrl"):
+        bp_assets.append(bp["deckUrl"])
+    for rel in bp_assets:
+        asset_path = (ROOT / rel).resolve()
+        if not asset_path.is_relative_to(ROOT.resolve()) or not asset_path.is_file():
+            raise SystemExit(f"BillPilot asset not found at {rel}")
 
     role = current_role(content)
     locality, _, country = content["location"].partition(",")
@@ -501,6 +593,7 @@ def build():
     <nav aria-label="Primary">
       <ul>
         <li><a href="#highlights">Highlights</a></li>
+        <li><a href="#billpilot">{e(bp["navLabel"])}</a></li>
         <li><a href="#experience">Experience</a></li>
         <li><a href="#skills">Skills</a></li>
         <li><a href="#projects">Projects</a></li>
@@ -535,6 +628,8 @@ def build():
     </div>
     <div class="bento">{highlights}</div>
   </section>
+
+  {render_billpilot(bp)}
 
   <section id="about" class="wrap section reveal" aria-labelledby="h-about">
     <h2 id="h-about">About</h2>
@@ -607,6 +702,10 @@ def build():
     dest_pdf = DIST / content["resume"]["path"]
     dest_pdf.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(pdf_path, dest_pdf)
+    for rel in bp_assets:
+        dest_asset = DIST / rel
+        dest_asset.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / rel, dest_asset)
     render_og(content, DIST / og_path, root)
     render_icon(32, DIST / "favicon-32.png", rounded=True)
     render_icon(180, DIST / "apple-touch-icon.png", rounded=False)

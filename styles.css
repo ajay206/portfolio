@@ -561,6 +561,111 @@ h3 {
   line-height: 1.4;
 }
 
+.bp-pitch { max-width: 68ch; }
+
+.bp-actions { margin-top: 18px; }
+
+.bp-deck-note {
+  margin: 10px 0 0;
+  max-width: 62ch;
+  font-size: 15px;
+}
+
+.bp-video {
+  position: relative;
+  margin-top: 24px;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+.bp-video video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin-top: 24px;
+}
+
+.bp-card h3 { margin-bottom: 10px; }
+
+.bp-note {
+  margin-top: 14px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.bp-note + .bp-note { margin-top: 10px; }
+
+.bp-sub {
+  margin: 32px 0 16px;
+  font-size: 18px;
+}
+
+.bp-personas {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 22px;
+}
+
+.bp-persona-tag {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bp-persona h4 { margin: 6px 0 0; }
+
+.bp-persona .body { margin-top: 10px; }
+
+.bp-phases {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bp-phase h4 { margin: 0; font-size: 18px; }
+
+.bp-phase .body { margin-top: 8px; }
+
+.bp-tech { margin-top: 4px; }
+
+.bp-gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.bp-shot {
+  display: block;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.bp-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.bp-shot:hover { border-color: rgba(255, 255, 255, 0.28); }
+
 .stack { display: grid; gap: 16px; }
 
 .project h3 {
@@ -677,6 +782,11 @@ section[id] { scroll-margin-top: 84px; }
   .skill-row h3 { padding-top: 0; }
   .stack { gap: 16px; }
   .wisp { width: 112px; height: 60px; left: 6%; opacity: 0.16; }
+  .bp-grid { grid-template-columns: 1fr; gap: 16px; }
+  .bp-personas { grid-template-columns: 1fr; gap: 16px; }
+  .bp-gallery { grid-template-columns: 1fr; gap: 16px; }
+  .bp-video { margin-top: 20px; }
+  .bp-sub { margin: 26px 0 14px; }
 }
 
 @media (max-width: 480px) {
