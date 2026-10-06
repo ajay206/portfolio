@@ -66,83 +66,6 @@ def render_stat(item: dict) -> str:
     )
 
 
-def render_billpilot(bp: dict) -> str:
-    video = bp["video"]
-    repo_btn = f'<a class="btn primary" href="{e(bp["repoUrl"])}" rel="noopener">{e(bp["repoLabel"])}</a>'
-    live_btn = ""
-    if bp.get("liveUrl"):
-        live_btn = f'<a class="btn" href="{e(bp["liveUrl"])}" rel="noopener">{e(bp.get("liveLabel", "Live demo"))}</a>'
-    deck_btn = ""
-    deck_note = ""
-    if bp.get("deckUrl"):
-        deck_btn = f'<a class="btn" href="{e(bp["deckUrl"])}" target="_blank" rel="noopener">{e(bp["deckLabel"])}</a>'
-        if bp.get("deckNote"):
-            deck_note = f'<p class="bp-deck-note muted">{e(bp["deckNote"])}</p>'
-
-    explainer = "".join(
-        '<article class="bp-card spot"><div class="spot-in">'
-        f'<h3>{e(card["title"])}</h3><p class="body">{e(card["body"])}</p>'
-        "</div></article>"
-        for card in bp["explainer"]
-    )
-
-    notes = "".join(
-        f'<p class="body bp-note">{e(note)}</p>'
-        for note in (bp.get("dataNote"), bp.get("testingNote"))
-        if note
-    )
-
-    personas = "".join(
-        '<article class="bp-persona spot"><div class="spot-in">'
-        f'<p class="bp-persona-tag muted">{e(persona["tagline"])}</p>'
-        f'<h4>{e(persona["role"])}</h4>'
-        f'<p class="body">{e(persona["body"])}</p>'
-        "</div></article>"
-        for persona in bp["personas"]
-    )
-
-    phases = "".join(
-        '<li class="bp-phase spot"><div class="spot-in">'
-        f'<h4>{e(phase["title"])}</h4><p class="body">{e(phase["body"])}</p>'
-        "</div></li>"
-        for phase in bp["phases"]
-    )
-
-    tech = "".join(f"<li>{e(item)}</li>" for item in bp["tech"])
-
-    shots = "".join(
-        f'<a class="bp-shot" href="{e(shot["src"])}" target="_blank" rel="noopener">'
-        f'<img src="{e(shot["src"])}" alt="{e(shot["alt"])}" loading="lazy" decoding="async" width="900" height="648">'
-        "</a>"
-        for shot in bp["screenshots"]
-    )
-
-    return f"""<section id="billpilot" class="wrap section reveal" aria-labelledby="h-billpilot">
-    <div class="seal-row">
-      <span class="seal" lang="ja" aria-hidden="true">{e(bp["seal"])}</span>
-      <h2 id="h-billpilot">{e(bp["heading"])}</h2>
-    </div>
-    <p class="lede bp-pitch">{e(bp["pitch"])}</p>
-    <p class="actions bp-actions">{repo_btn}{live_btn}{deck_btn}</p>
-    {deck_note}
-    <div class="bp-video">
-      <video controls preload="none" poster="{e(video["poster"])}" width="{video["width"]}" height="{video["height"]}" playsinline>
-        <source src="{e(video["src"])}" type="video/mp4">
-      </video>
-    </div>
-    <div class="bp-grid">{explainer}</div>
-    {notes}
-    <h3 class="bp-sub">Who it's for</h3>
-    <div class="bp-personas">{personas}</div>
-    <h3 class="bp-sub">How it was built</h3>
-    <ol class="bp-phases">{phases}</ol>
-    <h3 class="bp-sub">Stack</h3>
-    <ul class="tags bp-tech">{tech}</ul>
-    <h3 class="bp-sub">Screens</h3>
-    <div class="bp-gallery">{shots}</div>
-  </section>"""
-
-
 def render_points(points: list) -> str:
     if not points:
         return ""
@@ -207,6 +130,325 @@ def experience_corpus(content: dict) -> str:
 
 def link_label(url: str) -> str:
     return url.split("//", 1)[-1].replace("www.", "")
+
+
+def current_role(content):
+    for job in content["experience"]:
+        if str(job["end"]).lower() == "present":
+            return job
+    return content["experience"][0]
+
+
+# ---------------------------------------------------------------------------
+# Shared chrome: nav, header, footer, back-link. `prefix` is "" for pages at
+# the site root (index.html, experience.html, billpilot.html) and "../" for
+# pages one directory deep (projects/<slug>.html), so every asset and nav
+# href resolves correctly regardless of how deep the page lives.
+# ---------------------------------------------------------------------------
+
+NAV_ITEMS = [
+    ("Highlights", "index.html#highlights"),
+    ("Projects", "index.html#projects"),
+    ("Experience", "experience.html"),
+    ("Skills", "index.html#skills"),
+    ("Contact", "index.html#contact"),
+]
+
+
+def nav_html(prefix: str) -> str:
+    items = "".join(
+        f'<li><a href="{e(prefix + target)}">{e(label)}</a></li>' for label, target in NAV_ITEMS
+    )
+    return f"<ul>{items}</ul>"
+
+
+def header_html(content: dict, prefix: str) -> str:
+    return f"""<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="{e(prefix)}index.html#top">{e(content["name"])}</a>
+    <nav aria-label="Primary">
+      {nav_html(prefix)}
+    </nav>
+  </div>
+</header>"""
+
+
+def footer_html(content: dict) -> str:
+    return f'<footer class="wrap foot">© {e(content["site"]["year"])} {e(content["name"])}</footer>'
+
+
+def back_link(prefix: str) -> str:
+    return f'<a class="back-link" href="{e(prefix)}index.html">← Back to home</a>'
+
+
+def page_shell(
+    content: dict,
+    root: str,
+    prefix: str,
+    rel_path: str,
+    title: str,
+    description: str,
+    body: str,
+    og_type: str = "website",
+    ld_json: str | None = None,
+) -> str:
+    image_alt = f"{content['name']}, {content['headline']}"
+    og_path = content["site"]["ogImage"]
+    canonical = abs_url(root, rel_path)
+    ld_block = f'<script type="application/ld+json">{ld_json}</script>\n' if ld_json else ""
+    return f"""<!doctype html>
+<html lang="{e(content["site"]["lang"])}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{e(title)}</title>
+<meta name="description" content="{e(description)}">
+<meta name="author" content="{e(content["name"])}">
+<meta name="theme-color" content="#09090b">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{e(canonical)}">
+<meta property="og:type" content="{e(og_type)}">
+<meta property="og:title" content="{e(title)}">
+<meta property="og:description" content="{e(description)}">
+<meta property="og:url" content="{e(canonical)}">
+<meta property="og:image" content="{e(abs_url(root, og_path))}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{e(image_alt)}">
+<meta property="og:locale" content="en_IN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{e(title)}">
+<meta name="twitter:description" content="{e(description)}">
+<meta name="twitter:image" content="{e(abs_url(root, og_path))}">
+<meta name="twitter:image:alt" content="{e(image_alt)}">
+{ld_block}<link rel="icon" href="{e(prefix)}favicon.svg" type="image/svg+xml">
+<link rel="icon" href="{e(prefix)}favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="{e(prefix)}apple-touch-icon.png">
+<link rel="preload" href="{e(prefix)}fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{e(prefix)}fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{e(prefix)}styles.css">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<a class="skip" href="#main">Skip to content</a>
+{header_html(content, prefix)}
+<main id="main">
+{body}
+</main>
+{footer_html(content)}
+{REVEAL_JS}
+</body>
+</html>
+"""
+
+
+# ---------------------------------------------------------------------------
+# Homepage section renderers
+# ---------------------------------------------------------------------------
+
+
+def render_hero(content: dict, role: dict, resume: dict) -> str:
+    name_parts = content["name"].split()
+    if len(name_parts) >= 2:
+        name_html = e(" ".join(name_parts[:-1])) + "<br>" + e(name_parts[-1])
+    else:
+        name_html = e(content["name"])
+    headline_html = e(content["headline"]).replace(" + ", ' <span class="plus">+</span> ')
+    return f"""  <section id="top" class="hero" aria-labelledby="page-title">
+    <div class="wisp" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="kicker"><span class="kicker-mark">{e(role["company"])}</span>{e(role["role"])} · {e(content["location"])}</p>
+      <h1 id="page-title">{name_html}</h1>
+      <div class="hero-row">
+        <div class="hero-copy">
+          <p class="headline">{headline_html}</p>
+          <p class="lede">{e(content["valueStatement"])}</p>
+        </div>
+        <p class="actions">
+          <a class="btn primary" href="{e(resume["path"])}" download="{e(Path(resume["path"]).name)}">{e(resume["heroLabel"])}</a>
+          <a class="btn" href="#contact">Contact</a>
+        </p>
+      </div>
+    </div>
+  </section>"""
+
+
+def render_highlights(content: dict) -> str:
+    highlights = "".join(render_stat(item) for item in content["highlights"]["items"])
+    return f"""  <section id="highlights" class="wrap section reveal" aria-labelledby="h-highlights">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">要点</span>
+      <h2 id="h-highlights">{e(content["highlights"]["heading"])}</h2>
+    </div>
+    <div class="bento">{highlights}</div>
+  </section>"""
+
+
+def render_project_tile(name: str, summary: str, href: str, status: str = "") -> str:
+    badge = f' <span class="badge">{e(status)}</span>' if status else ""
+    return (
+        f'<a class="proj-card spot" href="{e(href)}">'
+        '<div class="spot-in">'
+        f"<h3>{e(name)}{badge}</h3>"
+        f'<p class="body">{e(summary)}</p>'
+        '<span class="proj-cta muted">Project details →</span>'
+        "</div></a>"
+    )
+
+
+def render_projects_grid(content: dict) -> str:
+    bp = content["billpilot"]
+    tiles = [render_project_tile(bp["heading"], bp["summary"], "billpilot.html")]
+    for project in content["projects"]:
+        summary = project.get("summary") or project["description"]
+        tiles.append(
+            render_project_tile(
+                project["name"], summary, f"projects/{project['slug']}.html", project.get("status", "")
+            )
+        )
+    return f"""  <section id="projects" class="wrap section reveal" aria-labelledby="h-proj">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">作品</span>
+      <h2 id="h-proj">Projects</h2>
+    </div>
+    <div class="bento proj-grid">{"".join(tiles)}</div>
+  </section>"""
+
+
+def render_experience_summary(role: dict) -> str:
+    award = f'<p class="award">{e(role["award"])}</p>' if role.get("award") else ""
+    return f"""  <section id="experience" class="wrap section reveal" aria-labelledby="h-exp">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">経歴</span>
+      <h2 id="h-exp">Experience</h2>
+    </div>
+    <article class="exp-summary spot">
+      <div class="spot-in">
+        <header class="row">
+          <h3>{e(role["role"])} <span class="muted">· {e(role["company"])}</span></h3>
+          <p class="date">{time_tag(role["start"])} – {time_tag(role["end"])}</p>
+        </header>
+        <p class="role-summary">{e(role["summary"])}</p>
+        {award}
+        <p class="actions"><a class="btn" href="experience.html">Full experience →</a></p>
+      </div>
+    </article>
+  </section>"""
+
+
+def render_skills(content: dict) -> str:
+    rows = []
+    for group in content["skills"]:
+        tags = "".join(f"<li>{e(item)}</li>" for item in group["items"])
+        rows.append(f'<div class="skill-row"><h3>{e(group["group"])}</h3><ul class="tags">{tags}</ul></div>')
+    return f"""  <section id="skills" class="wrap section reveal" aria-labelledby="h-skills">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">技術</span>
+      <h2 id="h-skills">Skills</h2>
+    </div>
+    <div class="panel">{"".join(rows)}</div>
+  </section>"""
+
+
+def render_contact_resume(content: dict) -> str:
+    contact = content["contact"]
+    resume = content["resume"]
+    return f"""  <section id="contact" class="wrap section reveal" aria-labelledby="h-contact">
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">連絡</span>
+      <h2 id="h-contact">Contact</h2>
+    </div>
+    <div class="panel contact-panel">
+      <ul class="contact">
+        <li><span class="muted">Email</span><a href="mailto:{e(contact["email"])}">{e(contact["email"])}</a></li>
+        <li><span class="muted">LinkedIn</span><a href="{e(contact["linkedin"])}" rel="me noopener">{e(link_label(contact["linkedin"]))}</a></li>
+        <li><span class="muted">GitHub</span><a href="{e(contact["github"])}" rel="me noopener">{e(link_label(contact["github"]))}</a></li>
+      </ul>
+      <div class="resume-row">
+        <p class="body">{e(resume["blurb"])}</p>
+        <a class="btn primary" href="{e(resume["path"])}" download="{e(Path(resume["path"]).name)}">{e(resume["label"])}</a>
+      </div>
+    </div>
+  </section>"""
+
+
+# ---------------------------------------------------------------------------
+# Detail pages
+# ---------------------------------------------------------------------------
+
+
+def render_experience_page(content: dict, prefix: str) -> str:
+    jobs_html = "".join(render_job(job) for job in content["experience"])
+    return f"""  <section class="wrap section reveal" aria-labelledby="h-exp">
+    {back_link(prefix)}
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">経歴</span>
+      <h1 id="h-exp" class="page-h1">Experience</h1>
+    </div>
+    <div>{jobs_html}</div>
+  </section>"""
+
+
+def render_billpilot_page(bp: dict, prefix: str) -> str:
+    video = bp["video"]
+    repo_btn = f'<a class="btn primary" href="{e(bp["repoUrl"])}" rel="noopener">{e(bp["repoLabel"])}</a>'
+    live_btn = ""
+    if bp.get("liveUrl"):
+        live_btn = f'<a class="btn" href="{e(bp["liveUrl"])}" rel="noopener">{e(bp.get("liveLabel", "Live demo"))}</a>'
+    deck_btn = ""
+    deck_note = ""
+    if bp.get("deckUrl"):
+        deck_btn = f'<a class="btn" href="{e(bp["deckUrl"])}" target="_blank" rel="noopener">{e(bp["deckLabel"])}</a>'
+        if bp.get("deckNote"):
+            deck_note = f'<p class="bp-deck-note muted">{e(bp["deckNote"])}</p>'
+    bullets = "".join(f"<li>{e(item)}</li>" for item in bp["whatItDoes"])
+    tech_line = f'<p class="bp-tech-line muted">{e(bp["tech"])}</p>' if bp.get("tech") else ""
+    return f"""  <section class="wrap section reveal" aria-labelledby="h-bp">
+    {back_link(prefix)}
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">{e(bp["seal"])}</span>
+      <h1 id="h-bp" class="page-h1">{e(bp["heading"])}</h1>
+    </div>
+    <p class="section-sub">{e(bp["summary"])}</p>
+    <div class="bp-video-cap">
+      <div class="bp-video">
+        <video controls preload="none" poster="{e(video["poster"])}" width="{video["width"]}" height="{video["height"]}" playsinline>
+          <source src="{e(video["src"])}" type="video/mp4">
+        </video>
+      </div>
+    </div>
+    <p class="actions bp-actions">{repo_btn}{live_btn}{deck_btn}</p>
+    {deck_note}
+    <article class="bp-what spot">
+      <div class="spot-in">
+        <h3>What it does</h3>
+        <ul class="bp-bullets">{bullets}</ul>
+        {tech_line}
+      </div>
+    </article>
+  </section>"""
+
+
+def render_project_detail_page(project: dict, prefix: str) -> str:
+    badge = f' <span class="badge">{e(project["status"])}</span>' if project.get("status") else ""
+    return f"""  <section class="wrap section reveal" aria-labelledby="h-proj">
+    {back_link(prefix)}
+    <div class="seal-row">
+      <span class="seal" lang="ja" aria-hidden="true">作品</span>
+      <h1 id="h-proj" class="page-h1">{e(project["name"])}{badge}</h1>
+    </div>
+    <article class="spot">
+      <div class="spot-in">
+        <p class="body">{e(project["description"])}</p>
+      </div>
+    </article>
+  </section>"""
+
+
+# ---------------------------------------------------------------------------
+# Image / icon generation (unchanged)
+# ---------------------------------------------------------------------------
 
 
 def load_font(path: Path, size: int, weight: int | None = None) -> ImageFont.FreeTypeFont:
@@ -433,14 +675,14 @@ REVEAL_JS = """<script>
 """
 
 
-def current_role(content):
-    for job in content["experience"]:
-        if str(job["end"]).lower() == "present":
-            return job
-    return content["experience"][0]
+# ---------------------------------------------------------------------------
+# Build-time safety guards. `pages` is a dict of {relative_path: html} for
+# every generated page (index.html, experience.html, billpilot.html, and
+# each projects/<slug>.html).
+# ---------------------------------------------------------------------------
 
 
-def audit(content, page):
+def audit(content: dict, pages: dict):
     bullets = experience_corpus(content)
     lowered = bullets.lower()
     for item in content["highlights"]["items"]:
@@ -459,19 +701,23 @@ def audit(content, page):
     for project in clone["projects"]:
         if project.get("name") == "DevOps Automation Project":
             project["description"] = re.sub(r"jenkins", "", project.get("description", ""), flags=re.I)
+            project["summary"] = re.sub(r"jenkins", "", project.get("summary", ""), flags=re.I)
     if "jenkins" in json.dumps(clone).lower():
         raise SystemExit("Jenkins appears outside skill tags and the DevOps Automation Project")
-    page_rest = re.sub(r'<section id="(?:skills|projects)".*?</section>', "", page, flags=re.S | re.I)
-    if "jenkins" in page_rest.lower():
-        raise SystemExit("Jenkins appears outside skills and projects in the generated page")
 
-    bp_match = re.search(r'<section id="billpilot".*?</section>', page, flags=re.S | re.I)
-    bp_html = bp_match.group(0).lower() if bp_match else ""
-    bp_blob = (json.dumps(content.get("billpilot", {})) + "\n" + bp_html).lower()
+    for rel_path, page in pages.items():
+        if rel_path.startswith("projects/"):
+            # The project's own detail page may describe its Jenkins usage.
+            continue
+        page_rest = re.sub(r'<section id="(?:skills|projects)".*?</section>', "", page, flags=re.S | re.I)
+        if "jenkins" in page_rest.lower():
+            raise SystemExit(f"Jenkins appears outside skills/projects in {rel_path}")
+
+    bp_blob = (json.dumps(content.get("billpilot", {})) + "\n" + pages.get("billpilot.html", "")).lower()
     if "csg" in bp_blob or "singleview" in bp_blob:
-        raise SystemExit("CSG or SingleView must not be mentioned in the BillPilot section")
+        raise SystemExit("CSG or SingleView must not be mentioned in the BillPilot pages")
 
-    blob = json.dumps(content) + "\n" + page
+    blob = json.dumps(content) + "\n" + "\n".join(pages.values())
     if PHONE_RE.search(blob):
         raise SystemExit("A phone-like number is present in the site content or HTML")
     for banned in ("telephone", "phone"):
@@ -487,13 +733,17 @@ def build():
         raise SystemExit(f"Resume PDF not found at {content['resume']['path']}")
 
     bp = content["billpilot"]
-    bp_assets = [bp["video"]["src"], bp["video"]["poster"]] + [shot["src"] for shot in bp["screenshots"]]
+    bp_assets = [bp["video"]["src"], bp["video"]["poster"]]
     if bp.get("deckUrl"):
         bp_assets.append(bp["deckUrl"])
     for rel in bp_assets:
         asset_path = (ROOT / rel).resolve()
         if not asset_path.is_relative_to(ROOT.resolve()) or not asset_path.is_file():
             raise SystemExit(f"BillPilot asset not found at {rel}")
+
+    for project in content["projects"]:
+        if not project.get("slug"):
+            raise SystemExit(f"Project {project.get('name')!r} is missing a slug")
 
     role = current_role(content)
     locality, _, country = content["location"].partition(",")
@@ -518,182 +768,84 @@ def build():
         raise SystemExit("JSON-LD must not include a phone number")
     ld_json = json.dumps(person, ensure_ascii=False).replace("<", "\\u003c")
 
-    jobs = [render_job(job) for job in content["experience"]]
-
-    skills = []
-    for group in content["skills"]:
-        tags = "".join(f"<li>{e(item)}</li>" for item in group["items"])
-        skills.append(
-            f'<div class="skill-row"><h3>{e(group["group"])}</h3><ul class="tags">{tags}</ul></div>'
-        )
-
-    projects = []
-    for project in content["projects"]:
-        badge = f' <span class="badge">{e(project["status"])}</span>' if project.get("status") else ""
-        projects.append(
-            '<article class="project spot"><div class="spot-in">'
-            f'<h3>{e(project["name"])}{badge}</h3><p>{e(project["description"])}</p>'
-            "</div></article>"
-        )
-
-    highlights = "".join(render_stat(item) for item in content["highlights"]["items"])
-    name_parts = content["name"].split()
-    if len(name_parts) >= 2:
-        name_html = e(" ".join(name_parts[:-1])) + "<br>" + e(name_parts[-1])
-    else:
-        name_html = e(content["name"])
-    headline_html = e(content["headline"]).replace(" + ", ' <span class="plus">+</span> ')
-    contact = content["contact"]
     resume = content["resume"]
-    og_path = content["site"]["ogImage"]
-    title = content["site"]["title"]
-    description = content["site"]["description"]
-    image_alt = f"{content['name']}, {content['headline']}"
 
-    page = f"""<!doctype html>
-<html lang="{e(content["site"]["lang"])}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{e(title)}</title>
-<meta name="description" content="{e(description)}">
-<meta name="author" content="{e(content["name"])}">
-<meta name="theme-color" content="#09090b">
-<meta name="color-scheme" content="dark">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="{e(root)}">
-<meta property="og:type" content="profile">
-<meta property="og:title" content="{e(title)}">
-<meta property="og:description" content="{e(description)}">
-<meta property="og:url" content="{e(root)}">
-<meta property="og:image" content="{e(abs_url(root, og_path))}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="{e(image_alt)}">
-<meta property="og:locale" content="en_IN">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{e(title)}">
-<meta name="twitter:description" content="{e(description)}">
-<meta name="twitter:image" content="{e(abs_url(root, og_path))}">
-<meta name="twitter:image:alt" content="{e(image_alt)}">
-<script type="application/ld+json">{ld_json}</script>
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preload" href="fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<div class="grain" aria-hidden="true"></div>
-<a class="skip" href="#main">Skip to content</a>
-<header class="site-header">
-  <div class="wrap bar">
-    <a class="brand" href="#top">{e(content["name"])}</a>
-    <nav aria-label="Primary">
-      <ul>
-        <li><a href="#highlights">Highlights</a></li>
-        <li><a href="#billpilot">{e(bp["navLabel"])}</a></li>
-        <li><a href="#experience">Experience</a></li>
-        <li><a href="#skills">Skills</a></li>
-        <li><a href="#projects">Projects</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </nav>
-  </div>
-</header>
-<main id="main">
-  <section id="top" class="hero" aria-labelledby="page-title">
-    <div class="wisp" aria-hidden="true"></div>
-    <div class="wrap">
-      <p class="kicker"><span class="kicker-mark">{e(role["company"])}</span>{e(role["role"])} · {e(content["location"])}</p>
-      <h1 id="page-title">{name_html}</h1>
-      <div class="hero-row">
-        <div class="hero-copy">
-          <p class="headline">{headline_html}</p>
-          <p class="lede">{e(content["valueStatement"])}</p>
-        </div>
-        <p class="actions">
-          <a class="btn primary" href="{e(resume["path"])}" download="{e(Path(resume["path"]).name)}">{e(resume["heroLabel"])}</a>
-          <a class="btn" href="#contact">Contact</a>
-        </p>
-      </div>
-    </div>
-  </section>
+    # --- index.html ---------------------------------------------------
+    index_body = "\n".join(
+        [
+            render_hero(content, role, resume),
+            render_highlights(content),
+            render_projects_grid(content),
+            render_experience_summary(role),
+            render_skills(content),
+            render_contact_resume(content),
+        ]
+    )
+    index_html = page_shell(
+        content,
+        root,
+        prefix="",
+        rel_path="",
+        title=content["site"]["title"],
+        description=content["site"]["description"],
+        body=index_body,
+        og_type="profile",
+        ld_json=ld_json,
+    )
 
-  <section id="highlights" class="wrap section reveal" aria-labelledby="h-highlights">
-    <div class="seal-row">
-      <span class="seal" lang="ja" aria-hidden="true">要点</span>
-      <h2 id="h-highlights">{e(content["highlights"]["heading"])}</h2>
-    </div>
-    <div class="bento">{highlights}</div>
-  </section>
+    # --- experience.html -------------------------------------------------
+    experience_html = page_shell(
+        content,
+        root,
+        prefix="",
+        rel_path="experience.html",
+        title=f"Experience — {content['name']}",
+        description=f"The full experience timeline for {content['name']}, {content['headline']}.",
+        body=render_experience_page(content, prefix=""),
+    )
 
-  {render_billpilot(bp)}
+    # --- billpilot.html ----------------------------------------------
+    billpilot_html = page_shell(
+        content,
+        root,
+        prefix="",
+        rel_path="billpilot.html",
+        title=f"{bp['heading']} — {content['name']}",
+        description=bp["summary"],
+        body=render_billpilot_page(bp, prefix=""),
+    )
 
-  <section id="about" class="wrap section reveal" aria-labelledby="h-about">
-    <h2 id="h-about">About</h2>
-    <p class="body">{e(content["summary"])}</p>
-  </section>
+    # --- projects/<slug>.html -----------------------------------------
+    project_pages = {}
+    for project in content["projects"]:
+        rel_path = f"projects/{project['slug']}.html"
+        project_pages[rel_path] = page_shell(
+            content,
+            root,
+            prefix="../",
+            rel_path=rel_path,
+            title=f"{project['name']} — {content['name']}",
+            description=project.get("summary") or project["description"],
+            body=render_project_detail_page(project, prefix="../"),
+        )
 
-  <section id="experience" class="wrap section reveal" aria-labelledby="h-exp">
-    <div class="seal-row">
-      <span class="seal" lang="ja" aria-hidden="true">経歴</span>
-      <h2 id="h-exp">Experience</h2>
-    </div>
-    <div>
-      {"".join(jobs)}
-    </div>
-  </section>
+    pages = {
+        "index.html": index_html,
+        "experience.html": experience_html,
+        "billpilot.html": billpilot_html,
+        **project_pages,
+    }
 
-  <section id="skills" class="wrap section reveal" aria-labelledby="h-skills">
-    <div class="seal-row">
-      <span class="seal" lang="ja" aria-hidden="true">技術</span>
-      <h2 id="h-skills">Skills</h2>
-    </div>
-    <div class="panel">{"".join(skills)}</div>
-  </section>
-
-  <section id="projects" class="wrap section reveal" aria-labelledby="h-proj">
-    <div class="seal-row">
-      <span class="seal" lang="ja" aria-hidden="true">作品</span>
-      <h2 id="h-proj">Projects</h2>
-    </div>
-    <div class="stack">{"".join(projects)}</div>
-  </section>
-
-  <section id="resume" class="wrap section reveal" aria-labelledby="h-resume">
-    <h2 id="h-resume">Resume</h2>
-    <div>
-      <p class="body">{e(resume["blurb"])}</p>
-      <p class="actions"><a class="btn primary" href="{e(resume["path"])}" download="{e(Path(resume["path"]).name)}">{e(resume["label"])}</a></p>
-    </div>
-  </section>
-
-  <section id="contact" class="wrap section reveal" aria-labelledby="h-contact">
-    <div class="seal-row">
-      <span class="seal" lang="ja" aria-hidden="true">連絡</span>
-      <h2 id="h-contact">Contact</h2>
-    </div>
-    <ul class="contact">
-      <li><span class="muted">Email</span><a href="mailto:{e(contact["email"])}">{e(contact["email"])}</a></li>
-      <li><span class="muted">LinkedIn</span><a href="{e(contact["linkedin"])}" rel="me noopener">{e(link_label(contact["linkedin"]))}</a></li>
-      <li><span class="muted">GitHub</span><a href="{e(contact["github"])}" rel="me noopener">{e(link_label(contact["github"]))}</a></li>
-    </ul>
-  </section>
-</main>
-<footer class="wrap foot">© {e(content["site"]["year"])} {e(content["name"])}</footer>
-{REVEAL_JS}
-</body>
-</html>
-"""
-
-    audit(content, page)
+    audit(content, pages)
 
     if DIST.exists():
         shutil.rmtree(DIST)
     DIST.mkdir()
-    (DIST / "index.html").write_text(page, encoding="utf-8")
+    for rel_path, html_doc in pages.items():
+        dest = DIST / rel_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(html_doc, encoding="utf-8")
+
     shutil.copy(ROOT / "styles.css", DIST / "styles.css")
     font_dir = DIST / "fonts"
     font_dir.mkdir()
@@ -706,6 +858,7 @@ def build():
         dest_asset = DIST / rel
         dest_asset.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(ROOT / rel, dest_asset)
+    og_path = content["site"]["ogImage"]
     render_og(content, DIST / og_path, root)
     render_icon(32, DIST / "favicon-32.png", rounded=True)
     render_icon(180, DIST / "apple-touch-icon.png", rounded=False)
@@ -714,14 +867,15 @@ def build():
         f"User-agent: *\nAllow: /\n\nSitemap: {abs_url(root, 'sitemap.xml')}\n",
         encoding="utf-8",
     )
+    sitemap_urls = "".join(f"  <url><loc>{abs_url(root, rel)}</loc></url>\n" for rel in pages)
     (DIST / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        f"  <url><loc>{root}</loc></url>\n"
+        f"{sitemap_urls}"
         "</urlset>\n",
         encoding="utf-8",
     )
-    print(f"wrote {DIST}")
+    print(f"wrote {DIST} ({len(pages)} pages)")
 
 
 if __name__ == "__main__":
