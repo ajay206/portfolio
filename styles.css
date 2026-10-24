@@ -821,3 +821,11 @@ section[id] { scroll-margin-top: 84px; }
   .kicker { font-size: 14px; }
   .contact li { grid-template-columns: 84px minmax(0, 1fr); }
 }
+
+.bp-video img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}

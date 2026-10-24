@@ -23,25 +23,36 @@
     "items": [
       {
         "title": "SingleView v9 to v12 upgrade",
-        "metrics": ["14 countries", "Millions of accounts"],
+        "metrics": [
+          "14 countries",
+          "Millions of accounts"
+        ],
         "line": "Led this major platform upgrade with an 8-person team per upgrade, delivered within a planned 6-hour downtime window.",
         "source": "14 countries covering millions of accounts, with an 8-person team per upgrade, delivered within a planned 6-hour downtime window."
       },
       {
         "title": "Starlink integration",
-        "metrics": ["9 countries", "3 weeks"],
+        "metrics": [
+          "9 countries",
+          "3 weeks"
+        ],
         "line": "Delivered the rollout, demoed it to CSRs and OPCO clients, and replicated it across the other OPCOs. Tens of customers onboarded so far.",
         "source": "9 countries within 3 weeks"
       },
       {
         "title": "Billing migration",
-        "metrics": ["~400 customers", "~2,500 services"],
+        "metrics": [
+          "~400 customers",
+          "~2,500 services"
+        ],
         "line": "Moved these enterprise customers and services, including balances, from manual to automated billing with no downtime.",
         "source": "~400 enterprise customers and ~2,500 services, including balances, from manual to automated billing with no downtime."
       },
       {
         "title": "REST API framework",
-        "metrics": ["5 production APIs"],
+        "metrics": [
+          "5 production APIs"
+        ],
         "line": "Built the configuration-driven outbound framework that nearly all current and new REST APIs are built on. New APIs are set up through configuration instead of new functions.",
         "source": "Developed 5 production APIs for enterprise integrations."
       }
@@ -58,7 +69,7 @@
     "liveLabel": "Live demo",
     "deckUrl": "assets/BillPilot_Architecture.pdf",
     "deckLabel": "Architecture deck (PDF)",
-    "deckNote": "This is the original design spec. Phases 1\u20135 were built largely as described; the final phase \u2014 testing \u2014 was reduced to basic pytest smoke tests, not a full end-to-end suite.",
+    "deckNote": "This is the original design spec. Phases 1–5 were built largely as described; the final phase — testing — was reduced to basic pytest smoke tests, not a full end-to-end suite.",
     "video": {
       "src": "assets/billpilot/billpilot-demo.mp4",
       "poster": "assets/billpilot/poster.jpg",
@@ -68,7 +79,7 @@
     "whatItDoes": [
       "Customers get plain-language bill explanations and dispute help, with policy citations.",
       "CSRs get an account view and a troubleshooting assistant with runbook citations.",
-      "Ops gets failure monitoring, reports, and an approval queue \u2014 credits are always approved by a human."
+      "Ops gets failure monitoring, reports, and an approval queue — credits are always approved by a human."
     ],
     "tech": "FastAPI, PostgreSQL, React, and an LLM tool-calling agent with RAG."
   },
@@ -79,23 +90,42 @@
       "start": "Aug 2022",
       "end": "Present",
       "summary": "Day to day: telecom billing on CSG SingleView (CM, CB), REST/SOAP API integrations, Oracle SQL, Perl, and operations support.",
-      "tags": ["CSG SingleView (CM, CB)", "REST APIs", "SOAP APIs", "Oracle SQL", "PostgreSQL", "Perl", "EPM", "Docker", "Kubernetes", "Linux"],
+      "tags": [
+        "CSG SingleView (CM, CB)",
+        "REST APIs",
+        "SOAP APIs",
+        "Oracle SQL",
+        "PostgreSQL",
+        "Perl",
+        "EPM",
+        "Docker",
+        "Kubernetes",
+        "Linux"
+      ],
       "themes": [
         {
           "heading": "SingleView v9 to v12 upgrade",
-          "points": ["Led the platform upgrade across 14 countries covering millions of accounts, with an 8-person team per upgrade, delivered within a planned 6-hour downtime window."]
+          "points": [
+            "Led the platform upgrade across 14 countries covering millions of accounts, with an 8-person team per upgrade, delivered within a planned 6-hour downtime window."
+          ]
         },
         {
           "heading": "Starlink integration",
-          "points": ["Delivered the Starlink integration deployment across 9 countries within 3 weeks; demoed it to CSRs and OPCO clients and replicated it across the other OPCOs. Recently launched, with tens of customers onboarded so far."]
+          "points": [
+            "Delivered the Starlink integration deployment across 9 countries within 3 weeks; demoed it to CSRs and OPCO clients and replicated it across the other OPCOs. Recently launched, with tens of customers onboarded so far."
+          ]
         },
         {
           "heading": "Billing migration",
-          "points": ["Migrated ~400 enterprise customers and ~2,500 services, including balances, from manual to automated billing with no downtime."]
+          "points": [
+            "Migrated ~400 enterprise customers and ~2,500 services, including balances, from manual to automated billing with no downtime."
+          ]
         },
         {
           "heading": "REST API framework",
-          "points": ["Built a reusable, configuration-driven outbound REST API framework that nearly all current and all new REST APIs are built on. New APIs are set up through configuration instead of writing new functions each time. Developed 5 production APIs for enterprise integrations."]
+          "points": [
+            "Built a reusable, configuration-driven outbound REST API framework that nearly all current and all new REST APIs are built on. New APIs are set up through configuration instead of writing new functions each time. Developed 5 production APIs for enterprise integrations."
+          ]
         },
         {
           "heading": "Operations and customer delivery",
@@ -109,7 +139,7 @@
         }
       ],
       "award": "Spotlight for Excellence Award, CSG (2024)",
-      "next": "BillPilot, a role-based AI copilot I built on a mock telecom billing system \u2014 see the Projects section below."
+      "next": "BillPilot, a role-based AI copilot I built on a mock telecom billing system — see the Projects section below."
     },
     {
       "role": "SDE Intern",
@@ -117,18 +147,89 @@
       "start": "Mar 2022",
       "end": "Jul 2022",
       "summary": "Configured telecom rating and billing solutions, and developed and tested UI components and reusable software components.",
-      "tags": ["Rating & billing", "UI components"],
+      "tags": [
+        "Rating & billing",
+        "UI components"
+      ],
       "themes": []
     }
   ],
   "skills": [
-    {"group": "Telecom BSS", "items": ["CSG SingleView (CM, CB)", "Rating & billing", "Invoicing", "Billing migrations", "Platform upgrades"]},
-    {"group": "APIs & integration", "items": ["REST APIs", "SOAP APIs", "System integration"]},
-    {"group": "Languages & data", "items": ["EPM", "Perl", "SQL", "Oracle SQL", "PostgreSQL"]},
-    {"group": "DevOps & platforms", "items": ["Docker", "Kubernetes", "Linux", "Git", "Jenkins", "Ansible", "Azure DevOps"]},
-    {"group": "Currently learning", "items": ["LLM tool-calling agents", "RAG", "TM Forum Open APIs"]}
+    {
+      "group": "Telecom BSS",
+      "items": [
+        "CSG SingleView (CM, CB)",
+        "Rating & billing",
+        "Invoicing",
+        "Billing migrations",
+        "Platform upgrades"
+      ]
+    },
+    {
+      "group": "APIs & integration",
+      "items": [
+        "REST APIs",
+        "SOAP APIs",
+        "System integration"
+      ]
+    },
+    {
+      "group": "Languages & data",
+      "items": [
+        "EPM",
+        "Perl",
+        "SQL",
+        "Oracle SQL",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "group": "DevOps & platforms",
+      "items": [
+        "Docker",
+        "Kubernetes",
+        "Linux",
+        "Git",
+        "Jenkins",
+        "Ansible",
+        "Azure DevOps"
+      ]
+    },
+    {
+      "group": "Currently learning",
+      "items": [
+        "LLM tool-calling agents",
+        "RAG",
+        "TM Forum Open APIs"
+      ]
+    }
   ],
   "projects": [
+    {
+      "name": "NetSentinel",
+      "heading": "NetSentinel",
+      "slug": "netsentinel",
+      "status": "",
+      "seal": "監視",
+      "summary": "AI-assisted NOC copilot for telecom operators: alarms, KPI anomalies, fault classification and a runbook-citing copilot, on synthetic network data.",
+      "description": "AI-assisted NOC copilot for telecom operators, running locally on synthetic network data.",
+      "repoUrl": "https://github.com/ajay206/NetSentinel",
+      "repoLabel": "GitHub repo",
+      "deckUrl": "assets/NetSentinel_Project_Deck.pdf",
+      "deckLabel": "Project deck (PDF)",
+      "image": {
+        "src": "assets/netsentinel/console.webp",
+        "alt": "NetSentinel NOC console: bento tiles for active alarms, open incidents, alarm compression, KPI anomalies and service health, with the demo path strip below (synthetic data).",
+        "width": 1280,
+        "height": 720
+      },
+      "whatItDoes": [
+        "Streams, de-duplicates and enriches network alarms, and flags KPI anomalies per cell.",
+        "Classifies root faults with an XGBoost model and explains each call with SHAP.",
+        "Suggests runbooks and runs a copilot (local LLM via Ollama) whose answers cite their runbook sources."
+      ],
+      "tech": "FastAPI microservices, Kafka, TimescaleDB, Qdrant, React console and Docker, with 100% synthetic data. Phase 1 complete."
+    },
     {
       "name": "DevOps Automation Project",
       "slug": "devops-automation",
