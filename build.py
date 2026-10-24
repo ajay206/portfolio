@@ -391,7 +391,24 @@ def render_experience_page(content: dict, prefix: str) -> str:
 
 
 def render_billpilot_page(bp: dict, prefix: str) -> str:
-    video = bp["video"]
+    video = bp.get("video")
+    image = bp.get("image")
+    if video:
+        media = f"""<div class="bp-video-cap">
+      <div class="bp-video">
+        <video controls preload="none" poster="{e(prefix + video["poster"])}" width="{video["width"]}" height="{video["height"]}" playsinline>
+          <source src="{e(prefix + video["src"])}" type="video/mp4">
+        </video>
+      </div>
+    </div>"""
+    elif image:
+        media = f"""<div class="bp-video-cap">
+      <div class="bp-video">
+        <img src="{e(prefix + image["src"])}" alt="{e(image["alt"])}" width="{image["width"]}" height="{image["height"]}" loading="lazy" decoding="async">
+      </div>
+    </div>"""
+    else:
+        media = ""
     repo_btn = f'<a class="btn primary" href="{e(bp["repoUrl"])}" rel="noopener">{e(bp["repoLabel"])}</a>'
     live_btn = ""
     if bp.get("liveUrl"):
@@ -399,7 +416,7 @@ def render_billpilot_page(bp: dict, prefix: str) -> str:
     deck_btn = ""
     deck_note = ""
     if bp.get("deckUrl"):
-        deck_btn = f'<a class="btn" href="{e(bp["deckUrl"])}" target="_blank" rel="noopener">{e(bp["deckLabel"])}</a>'
+        deck_btn = f'<a class="btn" href="{e(prefix + bp["deckUrl"])}" target="_blank" rel="noopener">{e(bp["deckLabel"])}</a>'
         if bp.get("deckNote"):
             deck_note = f'<p class="bp-deck-note muted">{e(bp["deckNote"])}</p>'
     bullets = "".join(f"<li>{e(item)}</li>" for item in bp["whatItDoes"])
@@ -411,13 +428,7 @@ def render_billpilot_page(bp: dict, prefix: str) -> str:
       <h1 id="h-bp" class="page-h1">{e(bp["heading"])}</h1>
     </div>
     <p class="section-sub">{e(bp["summary"])}</p>
-    <div class="bp-video-cap">
-      <div class="bp-video">
-        <video controls preload="none" poster="{e(video["poster"])}" width="{video["width"]}" height="{video["height"]}" playsinline>
-          <source src="{e(video["src"])}" type="video/mp4">
-        </video>
-      </div>
-    </div>
+    {media}
     <p class="actions bp-actions">{repo_btn}{live_btn}{deck_btn}</p>
     {deck_note}
     <article class="bp-what spot">
@@ -716,6 +727,10 @@ def audit(content: dict, pages: dict):
     bp_blob = (json.dumps(content.get("billpilot", {})) + "\n" + pages.get("billpilot.html", "")).lower()
     if "csg" in bp_blob or "singleview" in bp_blob:
         raise SystemExit("CSG or SingleView must not be mentioned in the BillPilot pages")
+    ns = next((p for p in content["projects"] if p.get("slug") == "netsentinel"), {})
+    ns_blob = (json.dumps(ns) + "\n" + pages.get("projects/netsentinel.html", "")).lower()
+    if "csg" in ns_blob or "singleview" in ns_blob:
+        raise SystemExit("CSG or SingleView must not be mentioned in the NetSentinel pages")
 
     blob = json.dumps(content) + "\n" + "\n".join(pages.values())
     if PHONE_RE.search(blob):
@@ -744,6 +759,12 @@ def build():
     for project in content["projects"]:
         if not project.get("slug"):
             raise SystemExit(f"Project {project.get('name')!r} is missing a slug")
+        extra = [project.get("deckUrl"), (project.get("image") or {}).get("src")]
+        for rel in filter(None, extra):
+            asset_path = (ROOT / rel).resolve()
+            if not asset_path.is_relative_to(ROOT.resolve()) or not asset_path.is_file():
+                raise SystemExit(f"{project['name']} asset not found at {rel}")
+            bp_assets.append(rel)
 
     role = current_role(content)
     locality, _, country = content["location"].partition(",")
@@ -824,9 +845,13 @@ def build():
             root,
             prefix="../",
             rel_path=rel_path,
-            title=f"{project['name']} — {content['name']}",
+            title=f"{project.get('heading', project['name'])} — {content['name']}",
             description=project.get("summary") or project["description"],
-            body=render_project_detail_page(project, prefix="../"),
+            body=(
+                render_billpilot_page(project, prefix="../")
+                if project.get("whatItDoes")
+                else render_project_detail_page(project, prefix="../")
+            ),
         )
 
     pages = {
