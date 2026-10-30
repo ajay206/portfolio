@@ -231,6 +231,31 @@
       "tech": "FastAPI microservices, Kafka, TimescaleDB, Qdrant, React console and Docker, with 100% synthetic data. Phase 1 complete."
     },
     {
+      "name": "RevenueLens",
+      "heading": "RevenueLens",
+      "slug": "revenuelens",
+      "status": "",
+      "seal": "収益",
+      "summary": "AI revenue-assurance plug-in for telecom billing: finds billing leaks read-only, cites the proof and queues human-approved fixes, on synthetic data.",
+      "description": "AI-powered revenue assurance that finds billing leaks, read-only, on synthetic telecom billing data.",
+      "repoUrl": "https://github.com/ajay206/revenuelens",
+      "repoLabel": "GitHub repo",
+      "deckUrl": "assets/RevenueLens_Project_Deck.pdf",
+      "deckLabel": "Project deck (PDF)",
+      "image": {
+        "src": "assets/revenuelens/dashboard.webp",
+        "alt": "RevenueLens dashboard showing detected billing leaks (synthetic data).",
+        "width": 1280,
+        "height": 720
+      },
+      "whatItDoes": [
+        "Reads existing billing tables without changing them and runs eight leak checks, such as unrated usage, tariff mismatches, expired discounts and duplicate charges.",
+        "Explains each leak in a story that cites the exact records behind it; the money math runs in code, and the story is written by an LLM.",
+        "Drafts a fix for every leak into an approval queue that admins and analysts approve or reject, with every action in an audit log."
+      ],
+      "tech": "FastAPI, PostgreSQL with row-level security and Docker, one isolated stack per company, with 100% synthetic data."
+    },
+    {
       "name": "DevOps Automation Project",
       "slug": "devops-automation",
       "status": "",

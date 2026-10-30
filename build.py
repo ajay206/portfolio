@@ -731,6 +731,10 @@ def audit(content: dict, pages: dict):
     ns_blob = (json.dumps(ns) + "\n" + pages.get("projects/netsentinel.html", "")).lower()
     if "csg" in ns_blob or "singleview" in ns_blob:
         raise SystemExit("CSG or SingleView must not be mentioned in the NetSentinel pages")
+    rl = next((p for p in content["projects"] if p.get("slug") == "revenuelens"), {})
+    rl_blob = (json.dumps(rl) + "\n" + pages.get("projects/revenuelens.html", "")).lower()
+    if "csg" in rl_blob or "singleview" in rl_blob:
+        raise SystemExit("CSG or SingleView must not be mentioned in the RevenueLens pages")
 
     blob = json.dumps(content) + "\n" + "\n".join(pages.values())
     if PHONE_RE.search(blob):
